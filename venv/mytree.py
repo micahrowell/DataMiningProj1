@@ -7,18 +7,31 @@ class Node:
     def __init__(self):
         self.nodes = []
         self.__data = None
+        self.__i = 0
+    def __str__(self,level=0):
+        ret = '|  ' * level
+        if level > 0:
+            ret += '|__'
+        """
+        attr = self.__data
+        if attr not in attrTypes:
+            ret += str(attr) + '\n'
+        else:
+            ret += str(attrTypes[attr]) + '\n'
+        """
+        ret += str(self.__data) + '\n'
+        for node in self.nodes:
+            ret += node.__str__(level + 1)
+        return ret
     def data(self):
         return self.__data
     def setData(self,value):
         self.__data = value
-    """
-    def getNodes(self):
-        return self.__nodes
-    def addNode(self,value):
-        n = Node()
-        n.setData(value)
-        self.__nodes.append(n)
-    """
+    def currentNode(self):
+        return self.nodes[self.__i]
+    def iterate(self):
+        if self.__i + 1 != len(self.nodes):
+            self.__i += 1
 
 # since this code has to run given several different conditions I figured it would be best to make it a function
 def findMaxClass(maxClassData):
@@ -38,12 +51,13 @@ def findMaxClass(maxClassData):
             maxName = c
     return maxName
 
-def infoGain(data,attrList):
+def gainRatio(data,attrList):
     D = list(data)
     attributeList = list(attrList)
     n = len(D)
     classes = {}
     gains = {}
+    gainRatios = {}
     for i in range(len(data)):
         key = data[i]['class']
         if key in classes:
@@ -85,20 +99,47 @@ def infoGain(data,attrList):
     maxVal = 0
     maxAttr = ''
     for e in gains:
+        """
+        # this is my attempt at gain ratio but I couldn't get it to work
+        partitions = attrTypes[e]
+        splitInfo = 0.0
+        for p in partitions:
+            typeCount = 0.0
+            for d in range(len(D)):
+                if p in D[d]:
+                    typeCount += 1.0
+            ratio = typeCount / len(D)
+            if ratio == 0:
+                continue
+            splitInfo -= ratio * math.log(ratio,2)
+        if splitInfo == 0:
+            gainRatios[e] = 0
+        else:
+            gainRatios[e] = gains[e] / splitInfo
+        """
         if gains[e] > maxVal:
             maxVal = gains[e]
             maxAttr = e
     return maxAttr
 
+"""
+def gainRatio(subData):
+    splitInfo = 0.0
+    for i in subData:
+        ratio = len(subData[i]) / len(data)
+        splitInfo -= ratio * math.log(ratio,2)
+"""
+
 def generateDecisionTree(data,attrListNames):
     D = list(data)
     attrList = list(attrListNames)
     N = Node()
-    className = D[0]['class']
+    className = str(D[0]['class'])
     allSameClass = True
     for i in range(len(D)):
-        if D[i]['class'] != className:
+        if str(D[i]['class']) != className:
             allSameClass = False
+            break
     if allSameClass:
         N.setData(className)
         return N
@@ -106,12 +147,10 @@ def generateDecisionTree(data,attrListNames):
         maxName = findMaxClass(D)
         N.setData(maxName)
         return N
-    attr = infoGain(D, attrList)
+    attr = gainRatio(D,attrList)
     N.setData(attr)
     # implement step 8
     attrList.remove(attr)
-    # """
-    # implement steps 10 - 14
     for t in attrTypes[attr]:
         newData = []
         for e in range(len(D)):
@@ -124,8 +163,26 @@ def generateDecisionTree(data,attrListNames):
         else:
             newNode = generateDecisionTree(newData,attrList)
             N.nodes.append(newNode)
-    # """
     return N
+
+def treeToArray(node,array,depth):
+    string = ''
+    depthString = ''
+    nodeData = node.data()
+    for i in range(depth):
+        if i != depth - 1:
+            depthString += '|  '
+    string += depthString + str(nodeData) + '\n'
+    if nodeData not in attrTypes:
+        string = depthString + '|__' + str(nodeData) + '\n'
+        array.append(string)
+    else:
+        array.append(string)
+        for t in attrTypes[nodeData]:
+            string = depthString + '|__' + str(t) + '\n'
+            array.append(string)
+            treeToArray(node.currentNode(),array,depth+1)
+            node.iterate()
 
 finName = sys.argv[1] # change 1 to 0
 attrToTest = sys.argv[2] # change 2 to 1
@@ -163,3 +220,9 @@ for a in attrToTest:
 attrTypes = {}
 
 tree = generateDecisionTree(data,attrToTestNames)
+#printArr = []
+#treeToArray(tree,printArr,0)
+
+#string = treeToString(tree)
+
+outData.write(str(tree))
