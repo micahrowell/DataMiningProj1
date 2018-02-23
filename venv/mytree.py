@@ -12,13 +12,6 @@ class Node:
         ret = '|  ' * level
         if level > 0:
             ret += '|__'
-        """
-        attr = self.__data
-        if attr not in attrTypes:
-            ret += str(attr) + '\n'
-        else:
-            ret += str(attrTypes[attr]) + '\n'
-        """
         ret += str(self.__data) + '\n'
         for node in self.nodes:
             ret += node.__str__(level + 1)
@@ -123,6 +116,7 @@ def gainRatio(data,attrList):
     return maxAttr
 
 """
+# gain ratio prototype where I laid out the logic
 def gainRatio(subData):
     splitInfo = 0.0
     for i in subData:
@@ -140,7 +134,7 @@ def generateDecisionTree(data,attrListNames):
         if str(D[i]['class']) != className:
             allSameClass = False
             break
-    if allSameClass:
+    if allSameClass == True:
         N.setData(className)
         return N
     if len(attrList) == 0:
@@ -153,9 +147,9 @@ def generateDecisionTree(data,attrListNames):
     attrList.remove(attr)
     for t in attrTypes[attr]:
         newData = []
-        for e in range(len(D)):
-            if D[e][attr] == t:
-                newData.append(D[e])
+        for d in range(len(D)):
+            if D[d][attr] == t:
+                newData.append(D[d])
         if len(newData) == 0:
             newNode = Node()
             newNode.setData(findMaxClass(D))
@@ -165,6 +159,8 @@ def generateDecisionTree(data,attrListNames):
             N.nodes.append(newNode)
     return N
 
+"""
+# this code is not used but is being kept to display my logic as part of the process
 def treeToArray(node,array,depth):
     string = ''
     depthString = ''
@@ -183,6 +179,7 @@ def treeToArray(node,array,depth):
             array.append(string)
             treeToArray(node.currentNode(),array,depth+1)
             node.iterate()
+"""
 
 finName = sys.argv[1] # change 1 to 0
 attrToTest = sys.argv[2] # change 2 to 1
